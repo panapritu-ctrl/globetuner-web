@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://globetuner.pages.dev/sitemap.xml
+Sitemap: https://globetuner-web.pages.dev/sitemap.xml

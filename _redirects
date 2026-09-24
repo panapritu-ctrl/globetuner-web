@@ -1,0 +1,5 @@
+# Cloudflare Pages 308-redirects /foo.html -> /foo by default. Google's
+# site-verification fetch wants a 200 at the exact .html URL it issued, so
+# serve these as rewrites (200) instead of letting the redirect happen.
+/googledbc107e785f3b090.html  /googledbc107e785f3b090  200
+/googled6e17893d487e66c.html  /googled6e17893d487e66c  200

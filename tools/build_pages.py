@@ -20,6 +20,7 @@ can be widened once the domain has some crawl history.
 import html
 import json
 import re
+import unicodedata
 import shutil
 from collections import defaultdict
 from pathlib import Path
@@ -38,7 +39,13 @@ def esc(s):
 
 
 def slug(s):
-    s = re.sub(r"[^a-z0-9]+", "-", (s or "").lower()).strip("-")
+    # Transliterate accents rather than dropping them: stripping non-ASCII
+    # turned "Turkiye" into "t-rkiye" and "Cote d'Ivoire" into
+    # "c-te-d-ivoire", which are poor URLs and poor search terms.
+    s = unicodedata.normalize("NFKD", s or "")
+    s = "".join(c for c in s if not unicodedata.combining(c))
+    s = s.replace("\u00df", "ss").replace("\u00f8", "o").replace("\u0111", "d")
+    s = re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
     return re.sub(r"-{2,}", "-", s)[:70] or "station"
 
 

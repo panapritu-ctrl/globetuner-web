@@ -6,7 +6,7 @@
 <title>Globe Tuner — Listen to Free Live Radio Online from Around the World</title>
 <meta name="description" content="Stream 20,000+ free live radio stations from 200+ countries right in your browser. No sign-up, no download. Music, news, sports and talk radio worldwide.">
 <link rel="canonical" href="https://globetuner-web.pages.dev/">
-<meta name="theme-color" content="#0b1020">
+<meta name="theme-color" content="#000000">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Globe Tuner — Free Live Radio Online">
@@ -14,7 +14,9 @@
 <meta property="og:url" content="https://globetuner-web.pages.dev/">
 <meta name="twitter:card" content="summary_large_image">
 
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/style.css">
 
 <script type="application/ld+json">
@@ -34,100 +36,143 @@
 </head>
 <body>
 
-<header class="topbar">
-  <a class="brand" href="/">
-    <span class="brand-mark" aria-hidden="true">◉</span>
-    <span class="brand-name">Globe&nbsp;Tuner</span>
-  </a>
-  <div class="search-wrap">
-    <input id="search" type="search" autocomplete="off" spellcheck="false"
-           placeholder="Search stations, countries, genres…" aria-label="Search radio stations">
-  </div>
-  <a class="topbar-cta" href="https://play.google.com/store/apps/details?id=com.globetuner.radio"
-     target="_blank" rel="noopener">Get the app</a>
-</header>
+<div class="shell">
 
-<main id="main">
+  <!-- ───────── sidebar ───────── -->
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="/">
+      <span class="brand-mark" aria-hidden="true">◉</span>
+      <span class="brand-name">Globe&nbsp;Tuner</span>
+    </a>
 
-  <section class="hero" id="hero">
-    <span class="hero-badge"><span class="pulse" aria-hidden="true"></span> Live right now</span>
-    <h1>Listen to free live radio from around the world</h1>
-    <p class="hero-sub">
-      <strong id="stat-web">20,000+</strong> stations from
-      <strong id="stat-countries">200+</strong> countries, streaming straight in your browser.
-      No sign-up. No download.
-    </p>
-  </section>
+    <nav class="nav" aria-label="Sections">
+      <button class="nav-item is-on" data-view="discover" type="button">
+        <span class="nav-ico" aria-hidden="true">✦</span> Discover
+      </button>
+      <button class="nav-item" data-view="popular" type="button">
+        <span class="nav-ico" aria-hidden="true">◎</span> Popular
+      </button>
+      <button class="nav-item" data-view="recent" type="button">
+        <span class="nav-ico" aria-hidden="true">↺</span> Recently Played
+      </button>
+    </nav>
 
-  <!-- ad slot: leaderboard -->
-  <div class="ad-slot ad-leaderboard" data-ad="top" hidden></div>
+    <div class="side-head">Countries</div>
+    <div class="side-scroll" id="side-countries"></div>
 
-  <section class="panel" id="results-panel" hidden>
-    <div class="panel-head">
-      <h2 id="results-title">Results</h2>
-      <button class="link-btn" id="clear-search" type="button">Clear</button>
-    </div>
-    <div class="grid" id="results"></div>
-    <p class="empty" id="results-empty" hidden>No stations matched. Try a country or genre.</p>
-  </section>
+    <a class="side-cta" href="https://play.google.com/store/apps/details?id=com.globetuner.radio"
+       target="_blank" rel="noopener">
+      <strong>Get the Android app</strong>
+      <span id="side-apponly">15,000+ more stations</span>
+    </a>
+  </aside>
 
-  <section class="panel" id="featured-panel">
-    <div class="panel-head"><h2>Popular right now</h2></div>
-    <div class="grid" id="featured"><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div></div>
-  </section>
+  <!-- ───────── main ───────── -->
+  <main class="content" id="main">
 
-  <section class="panel">
-    <div class="panel-head"><h2>Browse by country</h2></div>
-    <div class="chips" id="countries"></div>
-  </section>
+    <header class="topbar">
+      <button class="icon-btn menu-btn" id="menu" type="button" aria-label="Menu">☰</button>
+      <div class="search-wrap">
+        <input id="search" type="search" autocomplete="off" spellcheck="false"
+               placeholder="Search stations, countries, genres…" aria-label="Search radio stations">
+      </div>
+      <a class="topbar-cta" href="https://play.google.com/store/apps/details?id=com.globetuner.radio"
+         target="_blank" rel="noopener">Get the app</a>
+    </header>
 
-  <!-- ad slot: in-content -->
-  <div class="ad-slot ad-rect" data-ad="mid" hidden></div>
-
-  <section class="panel">
-    <div class="panel-head"><h2>Browse by genre</h2></div>
-    <div class="chips" id="genres"></div>
-  </section>
-
-  <section class="applink" id="applink">
-    <div class="applink-inner">
-      <h2>Some stations need the app</h2>
-      <p>
-        <strong id="stat-apponly">15,000+</strong> stations in our catalogue stream over plain
-        HTTP, which browsers block on secure sites for safety. The Android app plays those too —
-        along with background playback, a sleep timer, car mode and offline favourites.
+    <section class="hero" id="hero">
+      <span class="hero-badge"><span class="pulse" aria-hidden="true"></span> Live right now</span>
+      <h1>Radio from every<br>corner of the world</h1>
+      <p class="hero-sub">
+        <strong id="stat-web">20,000+</strong> live stations across
+        <strong id="stat-countries">200+</strong> countries — streaming free in your browser.
+        No sign-up, no download.
       </p>
-      <a class="btn-primary" href="https://play.google.com/store/apps/details?id=com.globetuner.radio"
-         target="_blank" rel="noopener">Get Globe Tuner on Google&nbsp;Play</a>
-      <p class="applink-note">Free · No sign-up · Fewer ads than this site</p>
-    </div>
-  </section>
+    </section>
 
-</main>
+    <div class="ad-slot ad-leaderboard" data-ad="top" hidden></div>
 
-<footer class="footer">
-  <p>Globe Tuner streams publicly available radio broadcasts. Station availability may vary.</p>
-  <p class="footer-links">
-    <a href="https://play.google.com/store/apps/details?id=com.globetuner.radio" target="_blank" rel="noopener">Android app</a>
-    <span>·</span>
-    <a href="https://globetuner.blogspot.com/" target="_blank" rel="noopener">Blog</a>
-  </p>
-</footer>
+    <section class="panel" id="results-panel" hidden>
+      <div class="panel-head">
+        <h2 id="results-title">Results</h2>
+        <button class="link-btn" id="clear-search" type="button">Clear</button>
+      </div>
+      <div class="tiles" id="results"></div>
+      <p class="empty" id="results-empty" hidden>No stations matched. Try a country or genre.</p>
+    </section>
 
-<!-- persistent player -->
-<div class="player" id="player" hidden>
-  <button class="player-btn" id="toggle" type="button" aria-label="Play or pause">
-    <span id="toggle-icon">▶</span>
-  </button>
-  <span class="np-art" id="np-art" aria-hidden="true"></span>
-  <div class="player-meta">
-    <div class="player-title" id="np-title">—</div>
-    <div class="player-sub" id="np-sub"></div>
+    <section class="panel" id="featured-panel">
+      <div class="panel-head"><h2>Popular right now</h2></div>
+      <div class="tiles" id="featured">
+        <div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div>
+        <div class="sk"></div><div class="sk"></div><div class="sk"></div><div class="sk"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="recent-panel" hidden>
+      <div class="panel-head"><h2>Recently played</h2></div>
+      <div class="tiles" id="recent"></div>
+      <p class="empty" id="recent-empty" hidden>Nothing yet — play a station and it'll show up here.</p>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Browse by genre</h2></div>
+      <div class="chips" id="genres"></div>
+    </section>
+
+    <div class="ad-slot ad-rect" data-ad="mid" hidden></div>
+
+    <section class="applink">
+      <div class="applink-inner">
+        <h2>Some stations need the app</h2>
+        <p>
+          <strong id="stat-apponly">15,000+</strong> stations in our catalogue stream over plain
+          HTTP, which browsers block on secure sites. The Android app plays those too — plus
+          background playback, a sleep timer, car mode and offline favourites.
+        </p>
+        <a class="btn-primary" href="https://play.google.com/store/apps/details?id=com.globetuner.radio"
+           target="_blank" rel="noopener">Get Globe Tuner on Google&nbsp;Play</a>
+        <p class="applink-note">Free · No sign-up · Fewer ads than this site</p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p>Globe Tuner streams publicly available radio broadcasts. Station availability may vary.</p>
+      <p class="footer-links">
+        <a href="https://play.google.com/store/apps/details?id=com.globetuner.radio" target="_blank" rel="noopener">Android app</a>
+        <span>·</span>
+        <a href="https://globetuner.blogspot.com/" target="_blank" rel="noopener">Blog</a>
+      </p>
+    </footer>
+
+  </main>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+
+<!-- ───────── now playing ───────── -->
+<div class="now" id="player" hidden>
+  <span class="now-art" id="np-art" aria-hidden="true"></span>
+
+  <div class="now-meta">
+    <div class="now-title" id="np-title">—</div>
+    <div class="now-sub" id="np-sub"></div>
   </div>
-  <div class="player-state" id="np-state" aria-live="polite"></div>
-  <input class="player-vol" id="vol" type="range" min="0" max="1" step="0.05" value="1"
-         aria-label="Volume">
-  <button class="player-btn ghost" id="close-player" type="button" aria-label="Stop">✕</button>
+
+  <div class="now-controls">
+    <button class="icon-btn" id="prev" type="button" aria-label="Previous station">⏮</button>
+    <button class="play-btn" id="toggle" type="button" aria-label="Play or pause">
+      <span id="toggle-icon">▶</span>
+    </button>
+    <button class="icon-btn" id="next" type="button" aria-label="Next station">⏭</button>
+  </div>
+
+  <div class="now-right">
+    <span class="eq now-eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <span class="now-state" id="np-state" aria-live="polite"></span>
+    <input class="now-vol" id="vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+    <button class="icon-btn" id="close-player" type="button" aria-label="Stop">✕</button>
+  </div>
 </div>
 
 <audio id="audio" preload="none"></audio>

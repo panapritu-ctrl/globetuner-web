@@ -14,10 +14,8 @@
 
   const state = {
     countries: [],
-    featured: [],
-    loaded: new Map(),  // countryCode -> stations[]
-    queue: [],          // the list the current station was played from
-    index: -1,
+    genres: [],
+    loaded: new Map(),   // countryCode -> stations[]
     current: null,
   };
 
@@ -36,7 +34,7 @@
     return items;
   }
 
-  /* ---------------- helpers ---------------- */
+  /* ---------------- rendering ---------------- */
 
   const initials = (name) =>
     (name || "?")
@@ -48,56 +46,45 @@
       .join("")
       .toUpperCase() || "?";
 
-  // ISO country code -> flag emoji via regional indicator symbols. Ships no
-  // assets and makes long country lists scannable.
+  // ISO country code -> flag emoji, via regional indicator symbols. Costs
+  // nothing to ship and makes the country lists read at a glance.
   const flag = (cc) =>
     /^[A-Z]{2}$/.test(cc || "")
       ? String.fromCodePoint(...[...cc].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65))
       : "";
 
-  /** Artwork that shows a logo when one loads and falls back to initials
-   *  when it doesn't -- roughly a third of upstream favicons are stale, and
-   *  a broken image looks worse than a clean monogram. */
-  function artwork(s, cls, phCls) {
+  function artwork(s, cls) {
     const box = document.createElement("span");
     box.className = cls;
-    const ph = document.createElement("span");
-    if (phCls) ph.className = phCls;
-    ph.textContent = initials(s.t);
-    box.append(ph);
+    box.textContent = initials(s.t);
     if (s.f) {
+      // Logo sits on top of the lettered tile; if it 404s or is too slow we
+      // just drop it and the initials stay visible.
       const img = document.createElement("img");
       img.loading = "lazy";
       img.decoding = "async";
       img.alt = "";
       img.src = s.f;
-      img.addEventListener("load", () => ph.replaceWith(img));
+      img.addEventListener("load", () => { box.textContent = ""; box.append(img); });
       img.addEventListener("error", () => img.remove());
     }
     return box;
   }
 
-  /* ---------------- tiles ---------------- */
-
-  function tile(s, list, i) {
+  function stationCard(s) {
     const el = document.createElement("button");
     el.type = "button";
-    el.className = "tile";
+    el.className = "card";
     el.dataset.url = s.u;
 
-    const art = artwork(s, "tile-art", "tile-ph");
-    const playBtn = document.createElement("span");
-    playBtn.className = "tile-play";
-    playBtn.setAttribute("aria-hidden", "true");
-    playBtn.textContent = "▶";
-    art.append(playBtn);
-
+    const txt = document.createElement("span");
+    txt.className = "card-txt";
     const t = document.createElement("span");
-    t.className = "tile-t";
+    t.className = "card-t";
     t.textContent = s.t;
 
     const sub = document.createElement("span");
-    sub.className = "tile-s";
+    sub.className = "card-s";
     const fl = flag(s.c);
     if (fl) {
       const f = document.createElement("span");
@@ -106,70 +93,70 @@
       sub.append(f);
     }
     const meta = document.createElement("span");
-    meta.textContent = s.g || s.l || s.c || "Radio";
+    meta.textContent = [s.g, s.l || s.c].filter(Boolean).join(" · ");
     sub.append(meta);
+    txt.append(t, sub);
 
-    el.append(art, t, sub);
-    el.addEventListener("click", () => play(s, list, i));
+    const eq = document.createElement("span");
+    eq.className = "eq";
+    eq.setAttribute("aria-hidden", "true");
+    eq.innerHTML = "<i></i><i></i><i></i>";
+
+    el.append(artwork(s, "card-ico"), txt, eq);
+    el.addEventListener("click", () => play(s, el));
     return el;
   }
 
-  function renderTiles(node, stations, limit = 120) {
+  function renderInto(node, stations, limit = 120) {
     node.replaceChildren();
-    const shown = stations.slice(0, limit);
     const frag = document.createDocumentFragment();
-    shown.forEach((s, i) => frag.append(tile(s, shown, i)));
+    stations.slice(0, limit).forEach((s) => frag.append(stationCard(s)));
     node.append(frag);
     markActive();
   }
 
   function markActive() {
     const url = state.current?.u;
-    document.querySelectorAll(".tile").forEach((c) =>
+    document.querySelectorAll(".card").forEach((c) =>
       c.classList.toggle("active", !!url && c.dataset.url === url)
     );
   }
 
   /* ---------------- playback ---------------- */
 
-  const setState = (msg) => ($("np-state").textContent = msg);
+  function setState(msg) {
+    $("np-state").textContent = msg;
+  }
 
-  function play(station, list, i) {
-    // Tapping whatever is already playing pauses instead of restarting.
+  function play(station, cardEl) {
+    // Tapping the station that's already playing acts as pause/resume
+    // rather than restarting the stream.
     if (state.current && state.current.u === station.u && !audio.paused) {
       audio.pause();
       return;
     }
-    if (Array.isArray(list)) {
-      state.queue = list;
-      state.index = typeof i === "number" ? i : list.findIndex((x) => x.u === station.u);
-    }
-    state.current = station;
 
+    state.current = station;
     $("player").hidden = false;
-    const art = artwork(station, "now-art");
+    const art = artwork(station, "np-art");
     art.id = "np-art";
     $("np-art").replaceWith(art);
-
     $("np-title").textContent = station.t;
-    $("np-sub").textContent = [flag(station.c), station.g, station.l || station.c]
+    $("np-sub").textContent = [station.g, station.l || station.c]
       .filter(Boolean)
       .join(" · ");
     setState("Connecting…");
 
     audio.src = station.u;
-    audio.play().catch(() => setState("Can't play"));
+    audio.play().catch(() => {
+      // Autoplay refusal or a stream that won't open. Either way the user
+      // gets told rather than staring at a silent bar.
+      setState("Can't play");
+    });
 
     markActive();
+    if (cardEl) cardEl.classList.add("active");
     remember(station);
-  }
-
-  /** Skip within whatever list the current station came from -- that's what
-   *  "next" means to a listener browsing a country or a search result. */
-  function step(delta) {
-    if (!state.queue.length) return;
-    const n = (state.index + delta + state.queue.length) % state.queue.length;
-    play(state.queue[n], state.queue, n);
   }
 
   audio.addEventListener("playing", () => {
@@ -196,9 +183,6 @@
     if (audio.paused) audio.play().catch(() => setState("Can't play"));
     else audio.pause();
   });
-  $("next").addEventListener("click", () => step(1));
-  $("prev").addEventListener("click", () => step(-1));
-  $("vol").addEventListener("input", (e) => (audio.volume = Number(e.target.value)));
 
   $("close-player").addEventListener("click", () => {
     audio.pause();
@@ -209,105 +193,49 @@
     markActive();
   });
 
-  /* ---------------- recently played ---------------- */
-
-  const RECENT_KEY = "gt_recent";
-
-  function readRecent() {
-    try {
-      return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
-    } catch {
-      return [];   // private mode / storage blocked
-    }
-  }
+  $("vol").addEventListener("input", (e) => {
+    audio.volume = Number(e.target.value);
+  });
 
   function remember(s) {
     try {
-      const prev = readRecent().filter((x) => x.u !== s.u);
+      const key = "gt_recent";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]").filter(
+        (x) => x.u !== s.u
+      );
       prev.unshift(s);
-      localStorage.setItem(RECENT_KEY, JSON.stringify(prev.slice(0, 24)));
+      localStorage.setItem(key, JSON.stringify(prev.slice(0, 20)));
     } catch {
-      /* not worth interrupting playback over */
+      /* private mode / storage disabled -- not worth interrupting playback */
     }
-  }
-
-  /* ---------------- views ---------------- */
-
-  const panels = {
-    featured: $("featured-panel"),
-    results: $("results-panel"),
-    recent: $("recent-panel"),
-  };
-
-  function show(which) {
-    panels.featured.hidden = which !== "featured";
-    panels.results.hidden = which !== "results";
-    panels.recent.hidden = which !== "recent";
-  }
-
-  function showRecent() {
-    const items = readRecent();
-    renderTiles($("recent"), items);
-    $("recent-empty").hidden = items.length > 0;
-    show("recent");
-  }
-
-  document.querySelectorAll(".nav-item").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("is-on"));
-      btn.classList.add("is-on");
-      if (btn.dataset.view === "recent") {
-        showRecent();
-      } else {
-        renderTiles($("featured"), state.featured, 60);
-        show("featured");
-      }
-      closeSidebar();
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    });
-  });
-
-  async function showCountry(c) {
-    const items = await loadCountry(c.c);
-    $("results-title").textContent = `${flag(c.c)} ${c.n} · ${items.length} stations`.trim();
-    renderTiles($("results"), items);
-    $("results-empty").hidden = true;
-    show("results");
-    closeSidebar();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }
-
-  async function showGenre(g) {
-    const top = state.countries.slice(0, 24).map((c) => loadCountry(c.c));
-    const pool = (await Promise.all(top)).flat();
-    const needle = g.toLowerCase();
-    const out = pool.filter((s) => (s.g || "").toLowerCase().includes(needle));
-    $("results-title").textContent = `${g} · ${out.length} stations`;
-    renderTiles($("results"), out);
-    $("results-empty").hidden = out.length > 0;
-    show("results");
   }
 
   /* ---------------- search ---------------- */
 
-  let timer;
-  async function runSearch(raw) {
-    const q = raw.trim().toLowerCase();
+  let searchTimer;
+  const resultsPanel = $("results-panel");
+
+  async function runSearch(qRaw) {
+    const q = qRaw.trim().toLowerCase();
     if (q.length < 2) {
-      renderTiles($("featured"), state.featured, 60);
-      show("featured");
+      resultsPanel.hidden = true;
+      $("featured-panel").hidden = false;
       return;
     }
 
-    // "kenya" or "ke" should open that country rather than scan only what
-    // happens to be in memory.
+    // Match a country by name or code first: "kenya" or "ke" should load
+    // that country rather than scan only what's already in memory.
     const hit = state.countries.find(
       (c) => c.n.toLowerCase() === q || c.c.toLowerCase() === q
     );
-    if (hit) return showCountry(hit);
+    if (hit) {
+      await showCountry(hit);
+      return;
+    }
 
     const pool = [];
     for (const items of state.loaded.values()) pool.push(...items);
+    // Nothing loaded yet: search the biggest countries so results aren't empty.
     if (pool.length < 4000) {
       const top = state.countries.slice(0, 12).map((c) => loadCountry(c.c));
       for (const items of await Promise.all(top)) pool.push(...items);
@@ -317,43 +245,56 @@
     const out = [];
     for (const s of pool) {
       if (seen.has(s.u)) continue;
-      if (`${s.t} ${s.g} ${s.l} ${s.c}`.toLowerCase().includes(q)) {
+      const hay = `${s.t} ${s.g} ${s.l} ${s.c}`.toLowerCase();
+      if (hay.includes(q)) {
         seen.add(s.u);
         out.push(s);
       }
       if (out.length >= 120) break;
     }
 
-    $("results-title").textContent = `Results for “${raw.trim()}”`;
-    renderTiles($("results"), out);
+    $("results-title").textContent = `Results for “${qRaw.trim()}”`;
+    renderInto($("results"), out);
     $("results-empty").hidden = out.length > 0;
-    show("results");
+    resultsPanel.hidden = false;
+    $("featured-panel").hidden = true;
+    resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   $("search").addEventListener("input", (e) => {
-    clearTimeout(timer);
+    clearTimeout(searchTimer);
     const v = e.target.value;
-    timer = setTimeout(() => runSearch(v), 220);
+    searchTimer = setTimeout(() => runSearch(v), 220);
   });
+
   $("clear-search").addEventListener("click", () => {
     $("search").value = "";
-    renderTiles($("featured"), state.featured, 60);
-    show("featured");
+    resultsPanel.hidden = true;
+    $("featured-panel").hidden = false;
   });
 
-  /* ---------------- mobile sidebar ---------------- */
+  async function showCountry(c) {
+    const items = await loadCountry(c.c);
+    $("results-title").textContent = `${c.n} · ${items.length} stations`;
+    renderInto($("results"), items);
+    $("results-empty").hidden = true;
+    resultsPanel.hidden = false;
+    $("featured-panel").hidden = true;
+    resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
-  const sidebar = $("sidebar");
-  const scrim = $("scrim");
-  const closeSidebar = () => {
-    sidebar.classList.remove("open");
-    scrim.hidden = true;
-  };
-  $("menu").addEventListener("click", () => {
-    sidebar.classList.toggle("open");
-    scrim.hidden = !sidebar.classList.contains("open");
-  });
-  scrim.addEventListener("click", closeSidebar);
+  async function showGenre(g) {
+    const top = state.countries.slice(0, 24).map((c) => loadCountry(c.c));
+    const pool = (await Promise.all(top)).flat();
+    const needle = g.toLowerCase();
+    const out = pool.filter((s) => (s.g || "").toLowerCase().includes(needle));
+    $("results-title").textContent = `${g} · ${out.length} stations`;
+    renderInto($("results"), out);
+    $("results-empty").hidden = out.length > 0;
+    resultsPanel.hidden = false;
+    $("featured-panel").hidden = true;
+    resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   /* ---------------- boot ---------------- */
 
@@ -381,38 +322,26 @@
         getJSON("/data/stats.json").catch(() => null),
       ]);
 
-      state.featured = featured;
       state.countries = countries;
+      state.genres = genres;
 
-      renderTiles($("featured"), featured, 60);
+      renderInto($("featured"), featured, 60);
 
-      const side = $("side-countries");
-      countries.slice(0, 120).forEach((c) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "side-c";
-        const f = document.createElement("span");
-        f.className = "flag";
-        f.textContent = flag(c.c);
-        const nm = document.createElement("span");
-        nm.textContent = c.n || c.c;
-        const n = document.createElement("span");
-        n.className = "n";
-        n.textContent = c.k;
-        b.append(f, nm, n);
-        b.addEventListener("click", () => showCountry(c));
-        side.append(b);
+      const cnode = $("countries");
+      countries.slice(0, 80).forEach((c) => {
+        const fl = flag(c.c);
+        cnode.append(chip(`${fl ? fl + " " : ""}${c.n || c.c}`, c.k, () => showCountry(c)));
       });
 
       const gnode = $("genres");
-      genres.slice(0, 32).forEach((g) => gnode.append(chip(g.g, g.k, () => showGenre(g.g))));
+      genres.slice(0, 32).forEach((g) =>
+        gnode.append(chip(g.g, g.k, () => showGenre(g.g)))
+      );
 
       if (stats) {
         $("stat-web").textContent = stats.web.toLocaleString();
         $("stat-countries").textContent = stats.countries.toLocaleString();
-        const ao = stats.appOnly.toLocaleString();
-        $("stat-apponly").textContent = ao;
-        $("side-apponly").textContent = `${ao} more stations`;
+        $("stat-apponly").textContent = stats.appOnly.toLocaleString();
       }
 
       // Deep link: /?q=jazz

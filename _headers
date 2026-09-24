@@ -1,0 +1,9 @@
+/data/*
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+/css/*
+  Cache-Control: public, max-age=604800
+/js/*
+  Cache-Control: public, max-age=604800
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

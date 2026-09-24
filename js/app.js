@@ -46,28 +46,63 @@
       .join("")
       .toUpperCase() || "?";
 
+  // ISO country code -> flag emoji, via regional indicator symbols. Costs
+  // nothing to ship and makes the country lists read at a glance.
+  const flag = (cc) =>
+    /^[A-Z]{2}$/.test(cc || "")
+      ? String.fromCodePoint(...[...cc].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65))
+      : "";
+
+  function artwork(s, cls) {
+    const box = document.createElement("span");
+    box.className = cls;
+    box.textContent = initials(s.t);
+    if (s.f) {
+      // Logo sits on top of the lettered tile; if it 404s or is too slow we
+      // just drop it and the initials stay visible.
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.alt = "";
+      img.src = s.f;
+      img.addEventListener("load", () => { box.textContent = ""; box.append(img); });
+      img.addEventListener("error", () => img.remove());
+    }
+    return box;
+  }
+
   function stationCard(s) {
     const el = document.createElement("button");
     el.type = "button";
     el.className = "card";
     el.dataset.url = s.u;
 
-    const ico = document.createElement("span");
-    ico.className = "card-ico";
-    ico.setAttribute("aria-hidden", "true");
-    ico.textContent = initials(s.t);
-
     const txt = document.createElement("span");
     txt.className = "card-txt";
     const t = document.createElement("span");
     t.className = "card-t";
     t.textContent = s.t;
+
     const sub = document.createElement("span");
     sub.className = "card-s";
-    sub.textContent = [s.g, s.l || s.c].filter(Boolean).join(" · ");
+    const fl = flag(s.c);
+    if (fl) {
+      const f = document.createElement("span");
+      f.className = "flag";
+      f.textContent = fl;
+      sub.append(f);
+    }
+    const meta = document.createElement("span");
+    meta.textContent = [s.g, s.l || s.c].filter(Boolean).join(" · ");
+    sub.append(meta);
     txt.append(t, sub);
 
-    el.append(ico, txt);
+    const eq = document.createElement("span");
+    eq.className = "eq";
+    eq.setAttribute("aria-hidden", "true");
+    eq.innerHTML = "<i></i><i></i><i></i>";
+
+    el.append(artwork(s, "card-ico"), txt, eq);
     el.addEventListener("click", () => play(s, el));
     return el;
   }
@@ -103,6 +138,9 @@
 
     state.current = station;
     $("player").hidden = false;
+    const art = artwork(station, "np-art");
+    art.id = "np-art";
+    $("np-art").replaceWith(art);
     $("np-title").textContent = station.t;
     $("np-sub").textContent = [station.g, station.l || station.c]
       .filter(Boolean)
@@ -122,15 +160,20 @@
   }
 
   audio.addEventListener("playing", () => {
-    setState("Live");
+    setState("● Live");
+    $("np-state").classList.add("live");
+    document.body.classList.remove("paused");
     $("toggle-icon").textContent = "⏸";
   });
   audio.addEventListener("pause", () => {
     setState("Paused");
+    $("np-state").classList.remove("live");
+    document.body.classList.add("paused");
     $("toggle-icon").textContent = "▶";
   });
   audio.addEventListener("waiting", () => setState("Buffering…"));
   audio.addEventListener("error", () => {
+    $("np-state").classList.remove("live");
     setState("Stream offline");
     $("toggle-icon").textContent = "▶";
   });
@@ -285,9 +328,10 @@
       renderInto($("featured"), featured, 60);
 
       const cnode = $("countries");
-      countries.slice(0, 80).forEach((c) =>
-        cnode.append(chip(c.n || c.c, c.k, () => showCountry(c)))
-      );
+      countries.slice(0, 80).forEach((c) => {
+        const fl = flag(c.c);
+        cnode.append(chip(`${fl ? fl + " " : ""}${c.n || c.c}`, c.k, () => showCountry(c)));
+      });
 
       const gnode = $("genres");
       genres.slice(0, 32).forEach((g) =>

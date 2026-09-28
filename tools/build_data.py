@@ -38,7 +38,53 @@ OUT = Path(__file__).resolve().parent.parent / "data"
 TOKEN_RE = re.compile(r"[?&](zt|zs|rj-tok|token|Policy|Signature|Key-Pair-Id)=", re.I)
 BANNED_HOSTS = ("zeno.fm", "surfernetwork.com")
 
-COUNTRY_NAMES = {}
+# Country display names.
+#
+# The name was being read off the location string's last comma-segment --
+# but that string had already been cut to 48 characters, so the United
+# Kingdom arrived as "The United Kingdom Of Great Britain And Northern".
+# The word "Ireland" was gone from the URL, the <title> and the <h1>.
+#
+# The name is now taken from the untruncated location, and the formal
+# names nobody searches for are mapped to the form people actually type.
+# "United Kingdom radio" is a real query; "The United Kingdom Of Great
+# Britain And Northern Ireland radio" is not.
+COUNTRY_NAMES = {
+    "US": "United States", "GB": "United Kingdom", "RU": "Russia",
+    "KR": "South Korea", "KP": "North Korea", "IR": "Iran", "SY": "Syria",
+    "VE": "Venezuela", "BO": "Bolivia", "TZ": "Tanzania", "MD": "Moldova",
+    "CZ": "Czechia", "LA": "Laos", "VN": "Vietnam", "BN": "Brunei",
+    "AE": "United Arab Emirates", "NL": "Netherlands", "PH": "Philippines",
+    "DO": "Dominican Republic", "CD": "DR Congo", "CG": "Congo",
+    "SH": "Saint Helena", "FM": "Micronesia", "MK": "North Macedonia",
+    "TW": "Taiwan", "HK": "Hong Kong", "MO": "Macau", "PS": "Palestine",
+    "BA": "Bosnia and Herzegovina", "SZ": "Eswatini", "TL": "Timor-Leste",
+    "CI": "Ivory Coast", "CV": "Cape Verde", "GM": "Gambia", "BS": "Bahamas",
+    "SD": "Sudan", "NE": "Niger", "CF": "Central African Republic",
+    "KN": "Saint Kitts and Nevis", "VC": "Saint Vincent and the Grenadines",
+    "TT": "Trinidad and Tobago", "VG": "British Virgin Islands",
+    "VI": "US Virgin Islands", "FK": "Falkland Islands",
+    "GS": "South Georgia", "UM": "US Outlying Islands",
+    "SJ": "Svalbard and Jan Mayen", "TF": "French Southern Territories",
+    "BQ": "Caribbean Netherlands", "CC": "Cocos Islands",
+    "TC": "Turks and Caicos", "MP": "Northern Mariana Islands",
+    "WF": "Wallis and Futuna", "AX": "Aland Islands", "SX": "Sint Maarten",
+    "MF": "Saint Martin", "BL": "Saint Barthelemy", "PM": "Saint Pierre and Miquelon",
+    "IO": "British Indian Ocean Territory", "CX": "Christmas Island",
+    "NF": "Norfolk Island", "HM": "Heard and McDonald Islands",
+    "SS": "South Sudan", "GW": "Guinea-Bissau", "GQ": "Equatorial Guinea",
+    "ST": "Sao Tome and Principe", "KM": "Comoros", "LY": "Libya",
+    "BF": "Burkina Faso", "AG": "Antigua and Barbuda",
+}
+
+
+def tidy_country(name):
+    """Drop the leading/trailing definite article some sources carry."""
+    n = (name or "").strip()
+    n = re.sub(r"\s*\(the\)$", "", n, flags=re.I)
+    n = re.sub(r"^The\s+", "", n, flags=re.I)
+    return n.strip()
+
 
 
 def fetch(path):
@@ -77,6 +123,7 @@ def main():
     OUT.mkdir(parents=True)
 
     by_country = defaultdict(list)
+    raw_country_name = {}          # cc -> name from the *untruncated* location
     seen = set()
     app_only = 0
 
@@ -92,6 +139,9 @@ def main():
             continue
         seen.add(url)
         cc = (s.get("countryCode") or "").upper() or "ZZ"
+        loc = (s.get("location") or "").strip()
+        if loc and cc not in raw_country_name:
+            raw_country_name[cc] = loc.split(",")[-1].strip()
         by_country[cc].append({
             "i": s.get("id"),
             "t": title,
@@ -112,8 +162,8 @@ def main():
         items.sort(key=lambda x: x["t"].lower())
         (cdir / f"{cc}.json").write_text(
             json.dumps(items, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-        name = next((i["l"].split(",")[-1].strip() for i in items if i["l"]), cc)
-        countries.append({"c": cc, "n": name or cc, "k": len(items)})
+        name = COUNTRY_NAMES.get(cc) or tidy_country(raw_country_name.get(cc, "")) or cc
+        countries.append({"c": cc, "n": name, "k": len(items)})
     countries.sort(key=lambda x: -x["k"])
 
     # A small homepage payload: editor's picks that are web-playable, else

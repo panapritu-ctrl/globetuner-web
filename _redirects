@@ -3,3 +3,46 @@
 # serve these as rewrites (200) instead of letting the redirect happen.
 /googledbc107e785f3b090.html  /googledbc107e785f3b090  200
 /googled6e17893d487e66c.html  /googled6e17893d487e66c  200
+
+# Country pages were named from a location string that had been cut to
+# 48 characters, so the UK lost the word "Ireland" and the rest carried
+# formal names nobody searches ("The United States Of America"). The
+# renamed pages moved; these keep the crawled URLs from 404-ing.
+/country/ascension-and-tristan-da-cunha-saint-helena/  /country/saint-helena/  301
+/country/bolivarian-republic-of-venezuela/  /country/venezuela/  301
+/country/bonaire/  /country/caribbean-netherlands/  301
+/country/brunei-darussalam/  /country/brunei/  301
+/country/cabo-verde/  /country/cape-verde/  301
+/country/coted-ivoire/  /country/ivory-coast/  301
+/country/dutch-part-sint-maarten/  /country/sint-maarten/  301
+/country/islamic-republic-of-iran/  /country/iran/  301
+/country/macao/  /country/macau/  301
+/country/republic-of-china/  /country/taiwan/  301
+/country/republic-of-north-macedonia/  /country/north-macedonia/  301
+/country/state-of-palestine/  /country/palestine/  301
+/country/syrian-arab-republic/  /country/syria/  301
+/country/the-bahamas/  /country/bahamas/  301
+/country/the-cayman-islands/  /country/cayman-islands/  301
+/country/the-central-african-republic/  /country/central-african-republic/  301
+/country/the-cocos-keeling-islands/  /country/cocos-islands/  301
+/country/the-congo/  /country/congo/  301
+/country/the-democratic-peoples-republic-of-korea/  /country/north-korea/  301
+/country/the-democratic-republic-of-the-congo/  /country/dr-congo/  301
+/country/the-dominican-republic/  /country/dominican-republic/  301
+/country/the-falkland-islands-malvinas/  /country/falkland-islands/  301
+/country/the-faroe-islands/  /country/faroe-islands/  301
+/country/the-french-southern-territories/  /country/french-southern-territories/  301
+/country/the-holy-see/  /country/holy-see/  301
+/country/the-lao-peoples-democratic-republic/  /country/laos/  301
+/country/the-marshall-islands/  /country/marshall-islands/  301
+/country/the-netherlands/  /country/netherlands/  301
+/country/the-philippines/  /country/philippines/  301
+/country/the-republic-of-korea/  /country/south-korea/  301
+/country/the-republic-of-moldova/  /country/moldova/  301
+/country/the-russian-federation/  /country/russia/  301
+/country/the-sudan/  /country/sudan/  301
+/country/the-united-arab-emirates/  /country/united-arab-emirates/  301
+/country/the-united-kingdom-of-great-britain-and-northern/  /country/united-kingdom/  301
+/country/the-united-states-minor-outlying-islands/  /country/us-outlying-islands/  301
+/country/the-united-states-of-america/  /country/united-states/  301
+/country/united-republic-of-tanzania/  /country/tanzania/  301

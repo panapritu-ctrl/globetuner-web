@@ -39,12 +39,11 @@ BY_COUNTRY = {
               "Cómo escuchar radio en vivo gratis online"),
     "indonesia": (f"{BLOG}/08/cara-mendengarkan-radio-online-gratis.html",
                   "Cara mendengarkan radio online gratis"),
-    # slugs come from the catalog's own country names, which are
-    # "Türkiye" and "The Russian Federation" rather than Turkey/Russia
+    # the catalog spells Turkey "Türkiye", which slugs to "turkiye"
     "turkiye": (f"{BLOG}/09/ucretsiz-canl-radyo-nasl-dinlenir-2026.html",
                 "Ücretsiz canlı radyo nasıl dinlenir"),
-    "the-russian-federation": (f"{BLOG}/09/2026.html",
-                               "Как слушать прямой радиоэфир бесплатно онлайн"),
+    "russia": (f"{BLOG}/09/2026.html",
+                "Как слушать прямой радиоэфир бесплатно онлайн"),
 }
 
 BY_GENRE = {

@@ -72,7 +72,12 @@ def slug(s):
     s = unicodedata.normalize("NFKD", "".join(out))
     s = "".join(c for c in s if not unicodedata.combining(c))
     s = re.sub(r"[^a-z0-9]+", "-", s.lower()).strip("-")
-    return re.sub(r"-{2,}", "-", s)[:70]
+    s = re.sub(r"-{2,}", "-", s)
+    if len(s) > 70:
+        # Cut on a word boundary. A hard slice left "...silves" and
+        # "...top-4", which read as typos in a search result.
+        s = s[:70].rsplit("-", 1)[0] if "-" in s[:70] else s[:70]
+    return s.strip("-")
 
 
 def degenerate(sl):

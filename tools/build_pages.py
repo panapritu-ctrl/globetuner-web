@@ -378,6 +378,32 @@ def main():
             shell(title, desc, canon, body, ld), encoding="utf-8")
         urls.append(canon)
 
+    # ---------- 404 ----------
+    # Without a 404.html, Pages answers every unknown path with index.html
+    # at status 200. Google read that as a real page, so any typo or stale
+    # link became another duplicate of the homepage. A file here makes Pages
+    # return an actual 404. Deliberately absent from the sitemap.
+    (ROOT / "404.html").write_text(shell(
+        "Page not found — Globe Tuner",
+        "That page doesn't exist. Browse live radio by country or genre instead.",
+        f"{BASE}/404",
+        """
+  <section class="hero">
+    <h1>That page doesn't exist</h1>
+    <p class="hero-sub">The link may be out of date. Everything we have is reachable
+    from the lists below, or start playing straight away from the home page.</p>
+    <p><a class="btn-primary" href="/">\u25b6 Open the player</a></p>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>Go somewhere real</h2></div>
+    <div class="chips">
+      <a class="chip" href="/countries/">Radio by country</a>
+      <a class="chip" href="/genres/">Radio by genre</a>
+      <a class="chip" href="/">All stations</a>
+    </div>
+  </section>
+"""), encoding="utf-8")
+
     # ---------- index pages ----------
     for folder, heading, links in (
         ("countries", "Radio by country",

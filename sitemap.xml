@@ -112,7 +112,6 @@
   <url><loc>https://globetuner-web.pages.dev/country/macao/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/country/syrian-arab-republic/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/country/coted-ivoire/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/country/unknown/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/country/cuba/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/country/guadeloupe/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/country/madagascar/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -198,7 +197,6 @@
   <url><loc>https://globetuner-web.pages.dev/country/antarctica/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/country/dutch-part-sint-maarten/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/country/the-french-southern-territories/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/country/unknown/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/country/aland-islands/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/country/guernsey/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/country/jersey/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -242,7 +240,7 @@
   <url><loc>https://globetuner-web.pages.dev/genre/alternative-rock/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/genre/70s/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/genre/00s/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/genre/station/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/genre/pop-muzyka/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/genre/pop-music/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/genre/greek-music/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/genre/sports/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -312,10 +310,10 @@
   <url><loc>https://globetuner-web.pages.dev/station/maxx-fm-bulgaria-hq-bg/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/the-mighty-1290-gli-us/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/deejay-mixes-de/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/500-cn/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/50-cn/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/80-cn/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/80-cn/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/500-oldies-b6dc0a-cn/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/50-classical-7a67c9-cn/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/80-radio-f72ca9-cn/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/80-radio-ad38a0-cn/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/1-splash-jazz-fr/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/102-fm-itaperuna-br/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/104-7-fm-natal-rn-brazil-br/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -324,7 +322,7 @@
   <url><loc>https://globetuner-web.pages.dev/station/acceso-total-mexicali-online-www-eltoquefm-com-el-toque-fm-mexicali-ba-mx/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/azul-radio-veracruz-online-azulradio-org-veracruz-veracruz-mx/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/exclusively-adele-mx/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/88-2-gr/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/aroma-88-2-gr/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/02-dance-radio-gr/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/08-libero-107-4-gr/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/100-greatest-heavy-metal-ca/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -332,7 +330,7 @@
   <url><loc>https://globetuner-web.pages.dev/station/70s-80s-90s-rdmix-network-ca/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/rdmix-classic-rock-70s-80s-90s-ca/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/res-ru/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/kids-hit-ru/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/kids-hit-detskiy-khit-rezerv-ru/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/107-9-el-observador-version-4-ar/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/1-splash-90s-es/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/1-splash-90s-dance-es/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -374,7 +372,7 @@
   <url><loc>https://globetuner-web.pages.dev/station/4fun-rock-cl/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/24dubstep-pl-calmflow-pl/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/24dubstep-pl-dropzone-radio-pl/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/357-pl/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/357-radio-b0bbc5-pl/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/100-retro-be/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/2dance-be/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/101-1-yes-fm-manila-ph/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -399,7 +397,7 @@
   <url><loc>https://globetuner-web.pages.dev/station/chalaca-pe/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/103-9-rock-hu/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/109fm-ua/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/1-ua/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/1-avtoradio-ua/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/7-rays-radio-ua/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/24-7-cotinuous-music-se/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/90s-rewind-se/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -410,7 +408,7 @@
   <url><loc>https://globetuner-web.pages.dev/station/92-5-phoenix-fm-ie/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/011-radio-za/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/5fm-za/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/919-za/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/919-radio-d75b48-za/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/94-7-highveld-stereo-za/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/531pi-aac-nz/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/531pi-mp3-nz/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -442,7 +440,7 @@
   <url><loc>https://globetuner-web.pages.dev/station/24-de-agosto-uy/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/970-universal-uy/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/aire-fm-100-3-uy/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/a-radio-for-acg-others-jp/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/a-radio-for-acg-and-others-jp/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/animenfo-jp/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/ashiyaradio-jp/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/asia-dream-radio-japan-hits-jp/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -456,8 +454,8 @@
   <url><loc>https://globetuner-web.pages.dev/station/bh-radio-1-ba/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/ai-radio-taiwan-ai-tw/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/asiafm-tw/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/asiafm-tw/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/b-b-radio-tw/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/asiafm-tw-2/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/b-and-b-radio-tw/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/106-family-news-radio-th/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/106-yes-radio-th/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/90-5-delight-th/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -473,11 +471,11 @@
   <url><loc>https://globetuner-web.pages.dev/station/be-99-7-do/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/bendicion95-1-fm-do/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/buen-pastor-radio-do/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/897-sk/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/897-club-4e6d89-sk/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/bestfm-sk/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/dobre-radio-sk/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/europa-2-sk/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/station-dz/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/classical-3ba2fb-dz/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/a-ntinea-radio-dz/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/algerie-chaine-1-dz/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/algerie-chaine-2-dz/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
@@ -528,8 +526,8 @@
   <url><loc>https://globetuner-web.pages.dev/station/batanga-radio-pr/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/caribe-clasico-pr/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/quran-af/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/station-af/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
-  <url><loc>https://globetuner-web.pages.dev/station/station-af/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/classical-488270-af/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://globetuner-web.pages.dev/station/classical-65e91a-af/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/0-24-2000er-pop-rock-af/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/103-fm-103-1-cr/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>
   <url><loc>https://globetuner-web.pages.dev/station/1047hit-cr/</loc><changefreq>weekly</changefreq><priority>0.7</priority></url>

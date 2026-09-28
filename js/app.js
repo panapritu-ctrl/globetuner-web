@@ -1,361 +1,435 @@
-/* Globe Tuner web player.
- *
- * Data is pre-split per country by tools/build_data.py, so the homepage
- * pulls ~21KB and a country loads only when someone asks for it. Stations
- * whose streams are plain HTTP never reach this file at all -- the browser
- * would refuse to play them on an HTTPS page, so they're filtered at build
- * time and surfaced on the page as app-only instead.
- */
-(() => {
-  "use strict";
+/* Globe Tuner — homepage.
+   Everything rendered here comes from data/ (built by tools/build_data.py).
+   The bar visualiser is decorative: cross-origin streams don't allow
+   Web Audio analysis, so it animates rather than reading the signal. */
+(function () {
+  'use strict';
 
-  const $ = (id) => document.getElementById(id);
-  const audio = $("audio");
+  var $ = function (id) { return document.getElementById(id); };
+  var audio = $('audio');
 
-  const state = {
-    countries: [],
-    genres: [],
-    loaded: new Map(),   // countryCode -> stations[]
-    current: null,
+  var state = {
+    stats: null,
+    countries: [],     // [{c,n,k}]
+    genres: [],        // [{g,k}]
+    featured: [],      // [{i,t,u,g,l,c,f}]
+    list: [],          // what the grid currently shows
+    cc: null,          // selected country code, null = featured
+    idx: -1,           // index of the playing station in state.list
+    cache: {}
   };
 
-  /* ---------------- data ---------------- */
+  /* IANA zone for the countries we surface. Only used to print a real
+     local time; a country without an entry simply doesn't show one. */
+  var TZ = {
+    US:'America/New_York', CA:'America/Toronto', MX:'America/Mexico_City',
+    BR:'America/Sao_Paulo', AR:'America/Argentina/Buenos_Aires', CL:'America/Santiago',
+    CO:'America/Bogota', PE:'America/Lima', VE:'America/Caracas',
+    GB:'Europe/London', IE:'Europe/Dublin', FR:'Europe/Paris', DE:'Europe/Berlin',
+    ES:'Europe/Madrid', IT:'Europe/Rome', PT:'Europe/Lisbon', NL:'Europe/Amsterdam',
+    BE:'Europe/Brussels', CH:'Europe/Zurich', AT:'Europe/Vienna', SE:'Europe/Stockholm',
+    NO:'Europe/Oslo', DK:'Europe/Copenhagen', FI:'Europe/Helsinki', IS:'Atlantic/Reykjavik',
+    PL:'Europe/Warsaw', CZ:'Europe/Prague', SK:'Europe/Bratislava', HU:'Europe/Budapest',
+    RO:'Europe/Bucharest', BG:'Europe/Sofia', GR:'Europe/Athens', HR:'Europe/Zagreb',
+    RS:'Europe/Belgrade', UA:'Europe/Kyiv', RU:'Europe/Moscow', TR:'Europe/Istanbul',
+    IN:'Asia/Kolkata', PK:'Asia/Karachi', BD:'Asia/Dhaka', LK:'Asia/Colombo',
+    NP:'Asia/Kathmandu', CN:'Asia/Shanghai', JP:'Asia/Tokyo', KR:'Asia/Seoul',
+    TW:'Asia/Taipei', HK:'Asia/Hong_Kong', SG:'Asia/Singapore', MY:'Asia/Kuala_Lumpur',
+    TH:'Asia/Bangkok', VN:'Asia/Ho_Chi_Minh', ID:'Asia/Jakarta', PH:'Asia/Manila',
+    AU:'Australia/Sydney', NZ:'Pacific/Auckland',
+    AE:'Asia/Dubai', SA:'Asia/Riyadh', IL:'Asia/Jerusalem', QA:'Asia/Qatar',
+    EG:'Africa/Cairo', MA:'Africa/Casablanca', DZ:'Africa/Algiers', TN:'Africa/Tunis',
+    NG:'Africa/Lagos', GH:'Africa/Accra', KE:'Africa/Nairobi', ZA:'Africa/Johannesburg',
+    ET:'Africa/Addis_Ababa', UG:'Africa/Kampala', TZ:'Africa/Dar_es_Salaam'
+  };
 
-  const getJSON = (path) =>
-    fetch(path, { cache: "force-cache" }).then((r) => {
-      if (!r.ok) throw new Error(`${path}: ${r.status}`);
+  var DOTS = ['#ff535b','#5b9dff','#a77bff','#ffc44d','#4ade80','#3ecfcf','#ff8f6b','#f472b6'];
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+  function num(n) { return Number(n || 0).toLocaleString('en-US'); }
+  function dotFor(cc) {
+    var h = 0, i;
+    for (i = 0; i < cc.length; i++) h = (h * 31 + cc.charCodeAt(i)) >>> 0;
+    return DOTS[h % DOTS.length];
+  }
+  function localTime(cc) {
+    var z = TZ[cc];
+    if (!z) return '';
+    try {
+      return new Intl.DateTimeFormat('en-GB', {
+        hour: '2-digit', minute: '2-digit', hour12: false, timeZone: z
+      }).format(new Date());
+    } catch (e) { return ''; }
+  }
+  function tzAbbr(cc) {
+    var z = TZ[cc];
+    if (!z) return '';
+    try {
+      var parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: z, timeZoneName: 'short'
+      }).formatToParts(new Date());
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i].type === 'timeZoneName') return parts[i].value;
+      }
+    } catch (e) {}
+    return '';
+  }
+  function initials(t) {
+    var w = String(t || '').replace(/[^\p{L}\p{N} ]/gu, ' ').trim().split(/\s+/);
+    if (!w[0]) return '?';
+    return (w[0][0] + (w[1] ? w[1][0] : '')).toUpperCase();
+  }
+  function json(url) {
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error(r.status);
       return r.json();
     });
-
-  async function loadCountry(cc) {
-    if (state.loaded.has(cc)) return state.loaded.get(cc);
-    const items = await getJSON(`/data/c/${cc}.json`);
-    state.loaded.set(cc, items);
-    return items;
   }
 
-  /* ---------------- rendering ---------------- */
+  /* ── ribbon ── */
+  function setRibbon(name, count, cc) {
+    var t = localTime(cc), z = tzAbbr(cc);
+    var bits = [String(name).toUpperCase(), num(count) + ' STATIONS'];
+    if (t) bits.push(t + (z ? ' ' + z : ''));
+    $('ribbon-country').textContent = bits.join(' • ');
+  }
 
-  const initials = (name) =>
-    (name || "?")
-      .replace(/[^\p{L}\p{N} ]/gu, "")
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((w) => w[0])
-      .join("")
-      .toUpperCase() || "?";
+  /* ── country pills ── */
+  function renderPills() {
+    var top = state.countries.slice(0, 9);
+    var html = '<button class="pill is-on" data-cc="" type="button">' +
+      '<span class="pdot" style="background:' + DOTS[0] + '"></span>Popular' +
+      '<span class="pk">' + num(state.featured.length) + '</span></button>';
+    top.forEach(function (c) {
+      html += '<button class="pill" data-cc="' + esc(c.c) + '" type="button">' +
+        '<span class="pdot" style="background:' + dotFor(c.c) + '"></span>' +
+        esc(shortName(c.n)) + '<span class="pk">' + num(c.k) + '</span></button>';
+    });
+    $('country-pills').innerHTML = html;
+  }
+  function shortName(n) {
+    return String(n)
+      .replace(/^The\s+/i, '')
+      .replace(/\s+Of\s+America$/i, '')
+      .replace(/\s+Federation$/i, '');
+  }
 
-  // ISO country code -> flag emoji, via regional indicator symbols. Costs
-  // nothing to ship and makes the country lists read at a glance.
-  const flag = (cc) =>
-    /^[A-Z]{2}$/.test(cc || "")
-      ? String.fromCodePoint(...[...cc].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65))
-      : "";
+  /* ── grid ── */
+  function cardHTML(s, i) {
+    var logo = s.f
+      ? '<img src="' + esc(s.f) + '" alt="" loading="lazy" decoding="async" ' +
+        'onerror="this.parentNode.textContent=this.dataset.ini" data-ini="' + esc(initials(s.t)) + '">'
+      : esc(initials(s.t));
+    return '<button class="card" data-i="' + i + '" type="button">' +
+      '<div class="card-top">' +
+        '<span class="card-logo">' + logo + '</span>' +
+        '<span class="card-id">' +
+          '<span class="card-name"><span class="nm">' + esc(s.t) + '</span>' +
+            '<span class="tag-live">Live</span></span>' +
+          '<span class="card-loc">' + esc(s.l || '') + '</span>' +
+        '</span>' +
+      '</div>' +
+      '<div class="card-mid"><div class="card-genre">' +
+        '<span class="g">' + esc(s.g || 'Radio') + '</span>' +
+        '<span class="card-cc">' + esc(s.c || '') + '</span>' +
+      '</div></div>' +
+      '<div class="card-bot">' +
+        '<span class="card-status">Streams in browser</span>' +
+        '<span class="card-play">▶</span>' +
+      '</div>' +
+    '</button>';
+  }
 
-  function artwork(s, cls) {
-    const box = document.createElement("span");
-    box.className = cls;
-    box.textContent = initials(s.t);
-    if (s.f) {
-      // Logo sits on top of the lettered tile; if it 404s or is too slow we
-      // just drop it and the initials stay visible.
-      const img = document.createElement("img");
-      img.loading = "lazy";
-      img.decoding = "async";
-      img.alt = "";
-      img.src = s.f;
-      img.addEventListener("load", () => { box.textContent = ""; box.append(img); });
-      img.addEventListener("error", () => img.remove());
+  function renderGrid(list, eyebrow, title) {
+    state.list = list;
+    $('grid-eyebrow').textContent = eyebrow;
+    $('grid-title').textContent = title;
+    $('cards-empty').hidden = list.length > 0;
+    $('cards').innerHTML = list.slice(0, 48).map(cardHTML).join('');
+    markPlaying();
+  }
+
+  function markPlaying() {
+    var nodes = $('cards').querySelectorAll('.card'), i;
+    for (i = 0; i < nodes.length; i++) {
+      var on = Number(nodes[i].dataset.i) === state.idx && !audio.paused;
+      nodes[i].classList.toggle('is-playing', on);
+      nodes[i].querySelector('.card-play').textContent = on ? '❚❚' : '▶';
     }
-    return box;
   }
 
-  function stationCard(s) {
-    const el = document.createElement("button");
-    el.type = "button";
-    el.className = "card";
-    el.dataset.url = s.u;
+  /* ── scale under the monitor ── */
+  function renderScale(cc) {
+    var top = state.countries.slice(0, 6);
+    $('scale-labels').innerHTML = top.map(function (c) {
+      return '<span class="' + (c.c === cc ? 'on' : '') + '">' + esc(c.c) + '</span>';
+    }).join('');
+    var sel = state.countries.filter(function (c) { return c.c === cc; })[0];
+    var pct = sel ? Math.max(3, Math.min(100, (sel.k / state.countries[0].k) * 100)) : 0;
+    $('scale-fill').style.width = pct + '%';
+    $('scale-note').textContent = sel
+      ? num(sel.k) + ' of ' + num(state.stats.web) + ' browser-ready'
+      : 'Catalogue coverage';
+  }
 
-    const txt = document.createElement("span");
-    txt.className = "card-txt";
-    const t = document.createElement("span");
-    t.className = "card-t";
-    t.textContent = s.t;
-
-    const sub = document.createElement("span");
-    sub.className = "card-s";
-    const fl = flag(s.c);
-    if (fl) {
-      const f = document.createElement("span");
-      f.className = "flag";
-      f.textContent = fl;
-      sub.append(f);
+  /* ── country selection ── */
+  function loadCountry(cc) {
+    var pills = $('country-pills').querySelectorAll('.pill'), i;
+    for (i = 0; i < pills.length; i++) {
+      pills[i].classList.toggle('is-on', pills[i].dataset.cc === (cc || ''));
     }
-    const meta = document.createElement("span");
-    meta.textContent = [s.g, s.l || s.c].filter(Boolean).join(" · ");
-    sub.append(meta);
-    txt.append(t, sub);
+    state.cc = cc || null;
 
-    const eq = document.createElement("span");
-    eq.className = "eq";
-    eq.setAttribute("aria-hidden", "true");
-    eq.innerHTML = "<i></i><i></i><i></i>";
-
-    el.append(artwork(s, "card-ico"), txt, eq);
-    el.addEventListener("click", () => play(s, el));
-    return el;
-  }
-
-  function renderInto(node, stations, limit = 120) {
-    node.replaceChildren();
-    const frag = document.createDocumentFragment();
-    stations.slice(0, limit).forEach((s) => frag.append(stationCard(s)));
-    node.append(frag);
-    markActive();
-  }
-
-  function markActive() {
-    const url = state.current?.u;
-    document.querySelectorAll(".card").forEach((c) =>
-      c.classList.toggle("active", !!url && c.dataset.url === url)
-    );
-  }
-
-  /* ---------------- playback ---------------- */
-
-  function setState(msg) {
-    $("np-state").textContent = msg;
-  }
-
-  function play(station, cardEl) {
-    // Tapping the station that's already playing acts as pause/resume
-    // rather than restarting the stream.
-    if (state.current && state.current.u === station.u && !audio.paused) {
-      audio.pause();
+    if (!cc) {
+      $('hero-count').textContent = num(state.stats.web);
+      $('hero-country').textContent = 'Radio from around the world';
+      $('hero-sub').textContent =
+        'Hand-picked stations from ' + num(state.stats.countries) +
+        ' countries, all playing straight in your browser. No sign-up, no download.';
+      setRibbon('Worldwide', state.stats.web, null);
+      renderScale(null);
+      renderGrid(state.featured, 'Popular right now', 'Editor’s picks');
       return;
     }
 
-    state.current = station;
-    $("player").hidden = false;
-    const art = artwork(station, "np-art");
-    art.id = "np-art";
-    $("np-art").replaceWith(art);
-    $("np-title").textContent = station.t;
-    $("np-sub").textContent = [station.g, station.l || station.c]
-      .filter(Boolean)
-      .join(" · ");
-    setState("Connecting…");
+    var meta = state.countries.filter(function (c) { return c.c === cc; })[0] || { n: cc, k: 0 };
+    $('hero-count').textContent = num(meta.k);
+    $('hero-country').textContent = shortName(meta.n);
+    $('hero-sub').textContent =
+      num(meta.k) + ' live stations from ' + shortName(meta.n) +
+      ' that play in your browser. Tap any card to start listening.';
+    setRibbon(shortName(meta.n), meta.k, cc);
+    renderScale(cc);
 
-    audio.src = station.u;
-    audio.play().catch(() => {
-      // Autoplay refusal or a stream that won't open. Either way the user
-      // gets told rather than staring at a silent bar.
-      setState("Can't play");
+    if (state.cache[cc]) { renderGrid(state.cache[cc], shortName(meta.n), 'Live stations'); return; }
+    $('cards').innerHTML = '<div class="sk"></div><div class="sk"></div><div class="sk"></div>';
+    json('/data/c/' + cc + '.json').then(function (list) {
+      state.cache[cc] = list;
+      if (state.cc === cc) renderGrid(list, shortName(meta.n), 'Live stations');
+    }).catch(function () {
+      if (state.cc === cc) renderGrid([], shortName(meta.n), 'Live stations');
     });
-
-    markActive();
-    if (cardEl) cardEl.classList.add("active");
-    remember(station);
   }
 
-  audio.addEventListener("playing", () => {
-    setState("● Live");
-    $("np-state").classList.add("live");
-    document.body.classList.remove("paused");
-    $("toggle-icon").textContent = "⏸";
-  });
-  audio.addEventListener("pause", () => {
-    setState("Paused");
-    $("np-state").classList.remove("live");
-    document.body.classList.add("paused");
-    $("toggle-icon").textContent = "▶";
-  });
-  audio.addEventListener("waiting", () => setState("Buffering…"));
-  audio.addEventListener("error", () => {
-    $("np-state").classList.remove("live");
-    setState("Stream offline");
-    $("toggle-icon").textContent = "▶";
+  /* ── gateways ── */
+  function renderGateways() {
+    var skip = state.cc;
+    var picks = state.countries.filter(function (c) { return c.c !== skip; }).slice(0, 4);
+    Promise.all(picks.map(function (c) {
+      if (state.cache[c.c]) return Promise.resolve(state.cache[c.c]);
+      return json('/data/c/' + c.c + '.json')
+        .then(function (l) { state.cache[c.c] = l; return l; })
+        .catch(function () { return []; });
+    })).then(function (lists) {
+      $('gateways').innerHTML = picks.map(function (c, i) {
+        var names = lists[i].slice(0, 3).map(function (s) { return s.t; }).join(', ');
+        var t = localTime(c.c), z = tzAbbr(c.c);
+        return '<button class="gw" data-cc="' + esc(c.c) + '" type="button">' +
+          '<span class="gw-ico" style="color:' + dotFor(c.c) + '">◉</span>' +
+          '<span class="gw-k">' + num(c.k) + ' stations</span>' +
+          '<span class="gw-n">' + esc(shortName(c.n)) + '</span>' +
+          '<span class="gw-s">' + esc(names || 'Browse the full list') + '</span>' +
+          '<span class="gw-f"><span>' + (t ? esc(t + (z ? ' ' + z : '')) : 'Local radio') +
+          '</span><span>→</span></span>' +
+        '</button>';
+      }).join('');
+    });
+  }
+
+  /* ── genres ── */
+  function renderGenres() {
+    $('genres').innerHTML = state.genres.slice(0, 18).map(function (g) {
+      return '<button class="chip" data-g="' + esc(g.g) + '" type="button">' +
+        esc(g.g) + ' <b>' + num(g.k) + '</b></button>';
+    }).join('');
+  }
+
+  /* ── search ── */
+  var searchTimer;
+  function runSearch(q) {
+    q = q.trim().toLowerCase();
+    $('clear-search').hidden = !q;
+    if (!q) { loadCountry(state.cc); return; }
+
+    // country name match -> jump straight to that country
+    var byCountry = state.countries.filter(function (c) {
+      return c.n.toLowerCase().indexOf(q) === 0 || c.c.toLowerCase() === q;
+    })[0];
+    if (byCountry) { loadCountry(byCountry.c); return; }
+
+    var pool = state.featured.slice();
+    Object.keys(state.cache).forEach(function (k) { pool = pool.concat(state.cache[k]); });
+
+    var seen = {}, hits = [];
+    pool.forEach(function (s) {
+      if (seen[s.i]) return;
+      var hay = (s.t + ' ' + (s.g || '') + ' ' + (s.l || '')).toLowerCase();
+      if (hay.indexOf(q) !== -1) { seen[s.i] = 1; hits.push(s); }
+    });
+    renderGrid(hits, 'Search', '“' + q + '” — ' + hits.length + ' station' + (hits.length === 1 ? '' : 's'));
+    if (hits.length < 6) {
+      $('cards-empty').hidden = hits.length > 0;
+      $('cards-empty').textContent = hits.length
+        ? ''
+        : 'Nothing matched here. Try a country name, or search all ' +
+          num(state.stats.total) + ' stations in the app.';
+    }
+  }
+
+  /* ── player ── */
+  function play(i) {
+    var s = state.list[i];
+    if (!s) return;
+    state.idx = i;
+    $('player').hidden = false;
+
+    var art = $('np-art');
+    art.innerHTML = s.f
+      ? '<img src="' + esc(s.f) + '" alt="" onerror="this.parentNode.textContent=\'' +
+        esc(initials(s.t)).replace(/'/g, '') + '\'">'
+      : esc(initials(s.t));
+
+    $('np-title').textContent = s.t;
+    $('np-sub').textContent = [s.g, s.l].filter(Boolean).join(' · ');
+    $('mon-title').textContent = s.t;
+    $('mon-sub').textContent = [s.g, s.l].filter(Boolean).join(' · ');
+    setState('Connecting');
+
+    audio.src = s.u;
+    audio.play().catch(function () { setState('Blocked', true); });
+    markPlaying();
+    history.replaceState(null, '', '#' + encodeURIComponent(s.i));
+  }
+
+  function setState(txt, isErr) {
+    var st = $('np-state');
+    st.textContent = txt;
+    st.classList.toggle('err', !!isErr);
+    $('mon-state').textContent = txt;
+    var live = txt === 'Live';
+    $('mon-state').classList.toggle('on', live);
+    $('viz').classList.toggle('live', live);
+    $('now-eq').classList.toggle('live', live);
+    $('toggle-icon').textContent = live || txt === 'Connecting' ? '❚❚' : '▶';
+    $('toggle').classList.toggle('loading', txt === 'Connecting');
+  }
+
+  function step(d) {
+    if (!state.list.length) return;
+    play((state.idx + d + state.list.length) % state.list.length);
+  }
+  function random() {
+    if (!state.list.length) return;
+    play(Math.floor(Math.random() * Math.min(state.list.length, 48)));
+  }
+
+  audio.addEventListener('playing', function () { setState('Live'); markPlaying(); });
+  audio.addEventListener('waiting', function () { setState('Buffering'); });
+  audio.addEventListener('pause',   function () { setState('Paused'); markPlaying(); });
+  audio.addEventListener('error',   function () { setState('Offline', true); markPlaying(); });
+
+  /* ── events ── */
+  document.addEventListener('click', function (e) {
+    var pill = e.target.closest('.pill');
+    if (pill) { $('search').value = ''; $('clear-search').hidden = true;
+                loadCountry(pill.dataset.cc || null); renderGateways(); return; }
+
+    var gw = e.target.closest('.gw');
+    if (gw) { loadCountry(gw.dataset.cc); renderGateways();
+              document.querySelector('.console').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+
+    var chip = e.target.closest('.chip');
+    if (chip) { $('search').value = chip.dataset.g; runSearch(chip.dataset.g); 
+                $('grid-panel').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+
+    var card = e.target.closest('.card');
+    if (card) {
+      var i = Number(card.dataset.i);
+      if (i === state.idx && !audio.paused) { audio.pause(); } else { play(i); }
+      return;
+    }
+
+    var nav = e.target.closest('.nav-item');
+    if (nav) {
+      var items = document.querySelectorAll('.nav-item');
+      for (var k = 0; k < items.length; k++) items[k].classList.remove('is-on');
+      nav.classList.add('is-on');
+      var v = nav.dataset.view;
+      if (v === 'countries') location.href = '/countries/';
+      else if (v === 'genres') location.href = '/genres/';
+      else if (v === 'recent') { loadCountry(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+      return;
+    }
   });
 
-  $("toggle").addEventListener("click", () => {
-    if (!state.current) return;
-    if (audio.paused) audio.play().catch(() => setState("Can't play"));
+  $('toggle').addEventListener('click', function () {
+    if (audio.paused) { audio.play().catch(function () { setState('Blocked', true); }); }
     else audio.pause();
   });
-
-  $("close-player").addEventListener("click", () => {
-    audio.pause();
-    audio.removeAttribute("src");
-    audio.load();
-    state.current = null;
-    $("player").hidden = true;
-    markActive();
+  $('next').addEventListener('click', function () { step(1); });
+  $('prev').addEventListener('click', function () { step(-1); });
+  $('act-next').addEventListener('click', function () { step(1); });
+  $('act-random').addEventListener('click', random);
+  $('close-player').addEventListener('click', function () {
+    audio.pause(); audio.removeAttribute('src'); audio.load();
+    $('player').hidden = true; state.idx = -1; setState(''); markPlaying();
   });
-
-  $("vol").addEventListener("input", (e) => {
-    audio.volume = Number(e.target.value);
+  $('vol').addEventListener('input', function () { audio.volume = Number(this.value); });
+  $('clear-search').addEventListener('click', function () {
+    $('search').value = ''; runSearch('');
   });
-
-  function remember(s) {
-    try {
-      const key = "gt_recent";
-      const prev = JSON.parse(localStorage.getItem(key) || "[]").filter(
-        (x) => x.u !== s.u
-      );
-      prev.unshift(s);
-      localStorage.setItem(key, JSON.stringify(prev.slice(0, 20)));
-    } catch {
-      /* private mode / storage disabled -- not worth interrupting playback */
-    }
-  }
-
-  /* ---------------- search ---------------- */
-
-  let searchTimer;
-  const resultsPanel = $("results-panel");
-
-  async function runSearch(qRaw) {
-    const q = qRaw.trim().toLowerCase();
-    if (q.length < 2) {
-      resultsPanel.hidden = true;
-      $("featured-panel").hidden = false;
-      return;
-    }
-
-    // Match a country by name or code first: "kenya" or "ke" should load
-    // that country rather than scan only what's already in memory.
-    const hit = state.countries.find(
-      (c) => c.n.toLowerCase() === q || c.c.toLowerCase() === q
-    );
-    if (hit) {
-      await showCountry(hit);
-      return;
-    }
-
-    const pool = [];
-    for (const items of state.loaded.values()) pool.push(...items);
-    // Nothing loaded yet: search the biggest countries so results aren't empty.
-    if (pool.length < 4000) {
-      const top = state.countries.slice(0, 12).map((c) => loadCountry(c.c));
-      for (const items of await Promise.all(top)) pool.push(...items);
-    }
-
-    const seen = new Set();
-    const out = [];
-    for (const s of pool) {
-      if (seen.has(s.u)) continue;
-      const hay = `${s.t} ${s.g} ${s.l} ${s.c}`.toLowerCase();
-      if (hay.includes(q)) {
-        seen.add(s.u);
-        out.push(s);
-      }
-      if (out.length >= 120) break;
-    }
-
-    $("results-title").textContent = `Results for “${qRaw.trim()}”`;
-    renderInto($("results"), out);
-    $("results-empty").hidden = out.length > 0;
-    resultsPanel.hidden = false;
-    $("featured-panel").hidden = true;
-    resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  $("search").addEventListener("input", (e) => {
+  $('search').addEventListener('input', function () {
+    var v = this.value;
     clearTimeout(searchTimer);
-    const v = e.target.value;
-    searchTimer = setTimeout(() => runSearch(v), 220);
+    searchTimer = setTimeout(function () { runSearch(v); }, 180);
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === '/' && document.activeElement !== $('search')) {
+      e.preventDefault(); $('search').focus();
+    }
+    if (e.key === ' ' && document.activeElement === document.body && state.idx >= 0) {
+      e.preventDefault(); $('toggle').click();
+    }
   });
 
-  $("clear-search").addEventListener("click", () => {
-    $("search").value = "";
-    resultsPanel.hidden = true;
-    $("featured-panel").hidden = false;
+  /* ── boot ── */
+  Promise.all([
+    json('/data/stats.json'),
+    json('/data/countries.json'),
+    json('/data/genres.json'),
+    json('/data/featured.json')
+  ]).then(function (r) {
+    state.stats = r[0]; state.countries = r[1]; state.genres = r[2]; state.featured = r[3];
+
+    $('stat-web').textContent       = num(state.stats.web);
+    $('stat-countries').textContent = num(state.stats.countries);
+    $('strip-web').textContent      = num(state.stats.web);
+    $('strip-countries').textContent= num(state.stats.countries);
+    $('strip-app').textContent      = num(state.stats.appOnly);
+    $('stat-apponly').textContent   = num(state.stats.appOnly);
+
+    renderPills();
+    renderGenres();
+    loadCountry(null);
+    renderGateways();
+
+    // keep the ribbon's clock honest
+    setInterval(function () {
+      var cc = state.cc;
+      if (!cc) return;
+      var m = state.countries.filter(function (c) { return c.c === cc; })[0];
+      if (m) setRibbon(shortName(m.n), m.k, cc);
+    }, 30000);
+
+    var q = new URLSearchParams(location.search).get('q');
+    if (q) { $('search').value = q; runSearch(q); }
+  }).catch(function () {
+    $('cards').innerHTML = '';
+    $('cards-empty').hidden = false;
+    $('cards-empty').textContent = 'Could not load the station list. Please refresh.';
   });
-
-  async function showCountry(c) {
-    const items = await loadCountry(c.c);
-    $("results-title").textContent = `${c.n} · ${items.length} stations`;
-    renderInto($("results"), items);
-    $("results-empty").hidden = true;
-    resultsPanel.hidden = false;
-    $("featured-panel").hidden = true;
-    resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  async function showGenre(g) {
-    const top = state.countries.slice(0, 24).map((c) => loadCountry(c.c));
-    const pool = (await Promise.all(top)).flat();
-    const needle = g.toLowerCase();
-    const out = pool.filter((s) => (s.g || "").toLowerCase().includes(needle));
-    $("results-title").textContent = `${g} · ${out.length} stations`;
-    renderInto($("results"), out);
-    $("results-empty").hidden = out.length > 0;
-    resultsPanel.hidden = false;
-    $("featured-panel").hidden = true;
-    resultsPanel.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  /* ---------------- boot ---------------- */
-
-  function chip(label, count, onClick) {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "chip";
-    b.textContent = label;
-    if (count != null) {
-      const n = document.createElement("span");
-      n.className = "n";
-      n.textContent = count;
-      b.append(n);
-    }
-    b.addEventListener("click", onClick);
-    return b;
-  }
-
-  async function boot() {
-    try {
-      const [featured, countries, genres, stats] = await Promise.all([
-        getJSON("/data/featured.json"),
-        getJSON("/data/countries.json"),
-        getJSON("/data/genres.json"),
-        getJSON("/data/stats.json").catch(() => null),
-      ]);
-
-      state.countries = countries;
-      state.genres = genres;
-
-      renderInto($("featured"), featured, 60);
-
-      const cnode = $("countries");
-      countries.slice(0, 80).forEach((c) => {
-        const fl = flag(c.c);
-        cnode.append(chip(`${fl ? fl + " " : ""}${c.n || c.c}`, c.k, () => showCountry(c)));
-      });
-
-      const gnode = $("genres");
-      genres.slice(0, 32).forEach((g) =>
-        gnode.append(chip(g.g, g.k, () => showGenre(g.g)))
-      );
-
-      if (stats) {
-        $("stat-web").textContent = stats.web.toLocaleString();
-        $("stat-countries").textContent = stats.countries.toLocaleString();
-        $("stat-apponly").textContent = stats.appOnly.toLocaleString();
-      }
-
-      // Deep link: /?q=jazz
-      const q = new URLSearchParams(location.search).get("q");
-      if (q) {
-        $("search").value = q;
-        runSearch(q);
-      }
-    } catch (err) {
-      console.error(err);
-      $("featured").innerHTML =
-        '<p class="empty">Couldn\'t load stations. Please refresh.</p>';
-    }
-  }
-
-  boot();
 })();
